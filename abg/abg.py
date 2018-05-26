@@ -84,7 +84,7 @@ def calculate_anion_gap(Na, Cl, HCO3act, K=0.0, albuminum=None):
         hypoalbuminemia leads to lower anion gap.
     :return:
         Anion gap mEq/L.
-    :rtype float:
+    :rtype: float
     """
     anion_gap = (Na + K) - (Cl + HCO3act)
     if albuminum is not None:
