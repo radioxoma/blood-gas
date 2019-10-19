@@ -1,8 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
-from __future__ import division
+"""
+Check calculations against ABL800 Flex ABG report (paper slip).
+"""
+
 import math
 import pandas as pd
 from uncertainties import ufloat
@@ -14,12 +16,11 @@ kPa = 0.133322368
 
 
 def diff(first, second):
-    """Is float fits in the uncertainity of ufloat?
+    """Is float fits in the uncertainty of ufloat?
 
     :param ufloat first: Etalon
     :param ufloat first: Calculated value
     """
-
     sum_dev = first.s + second.s
     if abs(second.std_score(first)) > 1:
         # print('Warning! Bad std_score %s (got %s, expected %s)' % (
@@ -29,18 +30,20 @@ def diff(first, second):
         pass
     if abs(first.n - second.n) <= sum_dev:
         return True
-    print('ERROR! std_score %s (got %s, expected %s)' % (
-        second.std_score(first), second, first))
-    print('Values Δ %s' % (first.n - second.n))
+    info = "ERROR! std_score {} (got {}, expected {}), ".format(
+        second.std_score(first), second, first)
+    info += "Values Δ {}".format(first.n - second.n)
+    print(info)
     return False
 
 
 def main_test():
-    data = pd.read_csv('samples.csv')
-    good = 0
-    err = 0
+    # good = 0
+    # err = 0
+    data = pd.read_csv("samples.csv")
     for idx, r in data.iterrows():
         # We know input with full precision
+        print(idx)
         patient = r['Patient']
         FO2 = float(r['FO2']) / 100  # Fraction
         T = r['Temp']
@@ -103,7 +106,7 @@ def main_test():
         # O2 status
         # ctO2
         if not diff(ctO2, abg.calculate_ctO2(pO2, sO2, FCOHb, FMetHb, ctHb)):
-            print('ctO2 mismatch %s, %s\n' % (patient, ID))
+            print("ctO2 mismatch: '{}', '{}'\n".format(patient, ID))
 
         # p50
         # if sO2 <= 0.97:
