@@ -44,7 +44,7 @@ def main_test():
     for idx, r in data.iterrows():
         # We know input with full precision
         print(idx)
-        patient = r['Patient']
+        patient = r['patient_name']
         FO2 = float(r['FO2']) / 100  # Fraction
         T = r['Temp']
 
