@@ -46,9 +46,9 @@ def main_test():
         print(idx)
         patient = r['patient_name']
         FO2 = float(r['FO2']) / 100  # Fraction
-        T = r['Temp']
+        T = r['temp']
 
-        ID = r['ID']
+        ID = r['id']
         ctHb = ufloat(r['ctHb'], 0.1) * 0.62058  # mmol/L
         Hct = ufloat(r['Hct'], 0.1) / 100  # Fraction
         Na = ufloat(r['cNa'], 1)
