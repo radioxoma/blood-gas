@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 """
 Check calculations against ABL800 Flex ABG report (paper slip).

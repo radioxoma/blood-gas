@@ -1,5 +1,4 @@
-#!/usr/bin/env python2
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python
 
 """
 Eugene Dvoretsky 2015, Vitebsk state medical university.
@@ -13,8 +12,6 @@ Not shure about parameters "by default": Radiometer sometimes declares it
 as zero (e.g. ODC reference position), sometimes no (default values).
 """
 
-from __future__ import absolute_import
-from __future__ import division
 try:
     from uncertainties import umath as math
 except ImportError:
@@ -39,7 +36,7 @@ cDPG = 5  # mmol\L
 # FMetHb = 0  # Standard
 
 
-class ODC(object):
+class ODC:
 
     """Oxygemoglobin dissiciation curve (ODC) model.
 

@@ -1,0 +1,11 @@
+[project]
+name = "blood-gas"
+version = "0.1.0"
+classifiers = [
+    "Intended Audience :: Healthcare Industry",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "pandas==3.0.1",
+    "uncertainties==3.2.3",
+]
