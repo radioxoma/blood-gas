@@ -37,7 +37,6 @@ cDPG = 5  # mmol\L
 
 
 class ODC:
-
     """Oxygemoglobin dissiciation curve (ODC) model.
 
     .. warning:: This all about reverse-engineering. I can't guarantee that
@@ -70,9 +69,7 @@ class ODC:
     .. [3] http://www.derangedphysiology.com/php/Arterial-blood-gases/p50.php
     """
 
-    def fit(
-            self, sO2, pO2, pCO2, pH,
-            T=37, FCOHb=0.004, FMetHb=0.004, p50st=None):
+    def fit(self, sO2, pO2, pCO2, pH, T=37, FCOHb=0.004, FMetHb=0.004, p50st=None):
         """Evaluate ODC position for specific blood sample.
 
 
@@ -142,7 +139,8 @@ class ODC:
                     break
                 n = haldane_odc_diff(x=x_measured, x_0=x_0i, y_0=self.y_0, a=a)
                 a = a + (y_measured - y_i) / (
-                    -n + math.tanh(k_0 * (x_measured - x_0i)))  # Brackets
+                    -n + math.tanh(k_0 * (x_measured - x_0i))
+                )  # Brackets
             self.ac = ac
             self.a = a
             self.a6 = a - ac
@@ -163,14 +161,13 @@ class ODC:
                 while True:
                     x_0i = eval_x_0(a=a6, T=T)
                     # n ~ 2.7 according to paper
-                    y_i = haldane_odc(
-                        x=x_measured, x_0=x_0i, y_0=self.y_0, a=a6)
+                    y_i = haldane_odc(x=x_measured, x_0=x_0i, y_0=self.y_0, a=a6)
                     if abs(y_measured - y_i) < epsilon:
                         break
-                    n = haldane_odc_diff(
-                        x=x_measured, x_0=x_0i, y_0=self.y_0, a=a6)
+                    n = haldane_odc_diff(x=x_measured, x_0=x_0i, y_0=self.y_0, a=a6)
                     a6 = a6 + (y_measured - y_i) / (
-                        -n + math.tanh(k_0 * (x_measured - x_0i)))  # Brackets
+                        -n + math.tanh(k_0 * (x_measured - x_0i))
+                    )  # Brackets
                 # *Расчёт кривой p50act*
                 # К рассчитанному для p50st `a6` прибавить рассчитанный по
                 # измеряемым параметрам сдвиг 'ac'
@@ -289,8 +286,7 @@ class ODC:
             p50, kPa.
         :rtype: float
         """
-        S = (0.5 * (1 - self.FCOHb - self.FMetHb) + self.FCOHb) / (
-            1 - self.FMetHb)
+        S = (0.5 * (1 - self.FCOHb - self.FMetHb) + self.FCOHb) / (1 - self.FMetHb)
         P = self.eval_pressure(sO2=S, A=self.a, T=37)
         return P / (1 + (self.FCOHb / 0.5 * (1 - self.FCOHb - self.FMetHb)))
 
@@ -342,11 +338,14 @@ class ODC:
             pO2(T), kPa
         :rtype: float
         """
+
         def calc_tiT(pO2, sO2, T):
-            """O2 content. Based on eq. 19 from paper.
-            """
-            alphaO2 = 9.83 * 10 ** -3 * math.exp(
-                -1.15 * 10 ** -2 * (T - 37) + 2.1 * 10 ** -4 * (T - 37) ** 2)
+            """O2 content. Based on eq. 19 from paper."""
+            alphaO2 = (
+                9.83
+                * 10**-3
+                * math.exp(-1.15 * 10**-2 * (T - 37) + 2.1 * 10**-4 * (T - 37) ** 2)
+            )
             return ctHb * (1 - self.FCOHb - self.FMetHb) * sO2 + alphaO2 * pO2
 
         # def calc_tiT_diff(pO2, sO2, T):
@@ -357,17 +356,21 @@ class ODC:
 
         def calc_tiT_diff(pO2, sO2, T, A):
             # Derivative from paper
-            alphaO2 = 9.83 * 10 ** -3 * math.exp(
-                -1.15 * 10 ** -2 * (T - 37) + 2.1 * 10 ** -4 * (T - 37) ** 2)
+            alphaO2 = (
+                9.83
+                * 10**-3
+                * math.exp(-1.15 * 10**-2 * (T - 37) + 2.1 * 10**-4 * (T - 37) ** 2)
+            )
             x = math.log(pO2)
             x_0 = eval_x_0(a=A, T=T)
             n = haldane_odc_diff(x=x, x_0=x_0, y_0=self.y_0, a=A)
             return alphaO2 + ctHb * n * (1 - sO2) / pO2
 
-        dpHdT = -1.46 * 10 ** -2 - 6.5 * 10 ** -3 * (self.pH - 7.4)
+        dpHdT = -1.46 * 10**-2 - 6.5 * 10**-3 * (self.pH - 7.4)
         A_37 = self.ac - 1.04 * dpHdT * (T - 37)
-        P_37 = self.pO2 + (self.pO2 / self.sO2) * (self.FCOHb / (
-            1 - self.FCOHb - self.FMetHb))  # 46.9
+        P_37 = self.pO2 + (self.pO2 / self.sO2) * (
+            self.FCOHb / (1 - self.FCOHb - self.FMetHb)
+        )  # 46.9
         S_37 = self.eval_saturation(pO2=P_37, A=A_37, T=37)
         # P_37 = self.pO2
         # S_37 = self.sO2
@@ -379,9 +382,9 @@ class ODC:
             counter += 1
             Si = self.eval_saturation(pO2=P, A=Ai, T=T)
             sO2iT = (Si * (1 - self.FMetHb) - self.FCOHb) / (
-                1 - self.FCOHb - self.FMetHb)
-            pO2iT = P / (
-                1 + (self.FCOHb / (sO2iT * (1 - self.FCOHb - self.FMetHb))))
+                1 - self.FCOHb - self.FMetHb
+            )
+            pO2iT = P / (1 + (self.FCOHb / (sO2iT * (1 - self.FCOHb - self.FMetHb))))
             tiT = calc_tiT(pO2=pO2iT, sO2=sO2iT, T=T)
             # print(t_37 - tiT)
             if (t_37 - tiT) < epsilon:
@@ -424,8 +427,7 @@ def haldane_odc(x, x_0, y_0, a):
 
 
 def haldane_odc_diff(x, x_0, y_0, a):
-    """Differential of `haldane_odc` (dy/dx Hill slope).
-    """
+    """Differential of `haldane_odc` (dy/dx Hill slope)."""
     h = h_0 + a  # Eq. 46.6
     return 1 + h * k_0 * (1 - math.tanh(k_0 * (x - x_0)) ** 2)
 
@@ -464,7 +466,7 @@ def main_test():
     FCOHb = 2.8 / 100
     FMetHb = -0.2 / 100
     ctHb = 11.4 * 0.62058  # mmol/L
-    pCO2T = 26.2 * 0.133322368
+    # pCO2T = 26.2 * 0.133322368
     pO2T = 454 * 0.133322368
 
     odc = ODC()
@@ -480,12 +482,12 @@ def main_test():
     # print("calculate_p50 %s kPa (%s mmHg)" % (p50, p50 / 0.133322368))
     # print("Expected                         26.3910308001 mmHg")
     # print('eval_p50st %f' % (odc.eval_p50st() / 0.133322368))
-    print('eval_pO2T %f' % (odc.eval_pO2T(ctHb=ctHb, T=T) / 0.133322368))
+    print("eval_pO2T %f" % (odc.eval_pO2T(ctHb=ctHb, T=T) / 0.133322368))
     print("expected  %s" % (pO2T / 0.133322368))
 
     # print("Test expected %s" % (odc.pO2 / 0.133322368))
     # print('test_pO2T %f' % (odc.test_pO2T(ctHb=ctHb, T=T) / 0.133322368))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main_test()

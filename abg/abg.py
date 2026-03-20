@@ -22,6 +22,7 @@ I do not perform any algebraic optimization.
 
 from __future__ import absolute_import
 from __future__ import division
+
 try:
     from uncertainties import umath as math
 except ImportError:
@@ -30,9 +31,9 @@ except ImportError:
 
 # Arterial blood reference
 norm_pH = (7.35, 7.45)
-norm_pCO2 = (35., 45.)  # 4.7-6.0 kPa
-norm_HCO3 = (22., 26.)
-norm_pO2 = (80., 100.)
+norm_pCO2 = (35.0, 45.0)  # 4.7-6.0 kPa
+norm_HCO3 = (22.0, 26.0)
+norm_pO2 = (80.0, 100.0)
 live_pH = (6.8, 7.8)  # Live borders
 
 
@@ -190,7 +191,7 @@ def calculate_hco3pst(pH, pCO2, ctHb, sO2):
         cHCO3(P,st) mmol/L.
     :rtype: float
     """
-    a = 4.04 * 10 ** -3 + 4.25 * 10 ** -4 * ctHb
+    a = 4.04 * 10**-3 + 4.25 * 10**-4 * ctHb
     Z = calculate_cbase(pH, pCO2, ctHb=ctHb) - 0.3062 * ctHb * (1 - sO2)
     return 24.47 + 0.919 * Z + Z * a * (Z - 8)
 
@@ -242,16 +243,17 @@ def calculate_cbase(pH, pCO2, ctHb=3):
     :rtype: float
     """
     # pCO2 *= 0.133322368  # mmHg to kPa
-    a = 4.04 * 10 ** -3 + 4.25 * 10 ** -4 * ctHb
-    pHHb = 4.06 * 10 ** -2 * ctHb + 5.98 - 1.92 * 10 ** (-0.16169 * ctHb)
-    log_pCO2Hb = -1.7674 * (10 ** -2) * ctHb + 3.4046 + 2.12 * 10 ** (
-        -0.15158 * ctHb)
+    a = 4.04 * 10**-3 + 4.25 * 10**-4 * ctHb
+    pHHb = 4.06 * 10**-2 * ctHb + 5.98 - 1.92 * 10 ** (-0.16169 * ctHb)
+    log_pCO2Hb = -1.7674 * (10**-2) * ctHb + 3.4046 + 2.12 * 10 ** (-0.15158 * ctHb)
     pHst = pH + math.log10(5.33 / pCO2) * (
-        (pHHb - pH) / (log_pCO2Hb - math.log10(7.5006 * pCO2)))
+        (pHHb - pH) / (log_pCO2Hb - math.log10(7.5006 * pCO2))
+    )
     cHCO3_533 = 0.23 * 5.33 * 10 ** ((pHst - 6.161) / 0.9524)
     # There is no comments, as there is no place for weak man
     cBase = 0.5 * ((8 * a - 0.919) / a) + 0.5 * math.sqrt(
-        (((0.919 - 8 * a) / a) ** 2) - 4 * ((24.47 - cHCO3_533) / a))
+        (((0.919 - 8 * a) / a) ** 2) - 4 * ((24.47 - cHCO3_533) / a)
+    )
     return cBase
 
 
@@ -280,7 +282,7 @@ def calculate_hct(ctHb):
     """
     # ctHb(mmol/L) == ctHb(g/dL) / 1.61140 == ctHb(g/dL) * 0.62058
     # By [1] p. 6-14 or 6-49.
-    return 0.0485 * ctHb + 8.3 * 10 ** -3
+    return 0.0485 * ctHb + 8.3 * 10**-3
 
 
 def calculate_pHT(pH, t):
@@ -361,7 +363,7 @@ def calculate_ctO2(pO2, sO2, FCOHb, FMetHb, ctHb):
     # By [1] p. 6-14 or 6-49.
     # pO2 *= 0.133322368  # mmHg to kPa, 1 mmHg = 0.133322368 kPa
     # O2 solubility coefficient in blood at 37 °С.
-    alphaO2 = 9.83 * 10 ** -3  # mmol/L/kPa
+    alphaO2 = 9.83 * 10**-3  # mmol/L/kPa
     return alphaO2 * pO2 + sO2 * (1 - FCOHb - FMetHb) * ctHb
 
 
@@ -403,11 +405,12 @@ def calculate_Ca74(pH, Ca):
     """
     if not 7.2 <= pH <= 7.4:
         raise ValueError(
-            "Can calculate only for pH 7.2-7.6 due to biological variations")
+            "Can calculate only for pH 7.2-7.6 due to biological variations"
+        )
     return Ca * (1 - 0.53 * (7.4 - pH))
 
 
-def expected_pH(pCO2, status='acute'):
+def expected_pH(pCO2, status="acute"):
     """Calculate expected pH for given pCO2 (chronic or acute patient status).
 
 
@@ -421,7 +424,7 @@ def expected_pH(pCO2, status='acute'):
         Expected pH.
     :rtype: float
     """
-    st = {'acute': 0.008, 'chronic': 0.003}
+    st = {"acute": 0.008, "chronic": 0.003}
     return 7.4 + st[status] * (40.0 - pCO2)
 
 
@@ -445,7 +448,7 @@ def abg(pH, pCO2):
 
         Does this pH and pCO2 means hidden metabolic process?
         """
-        guess = ''
+        guess = ""
         magic_number = 0.07
         ex_pH = expected_pH(pCO2)
         if abs(pH - ex_pH) > magic_number:
@@ -453,8 +456,7 @@ def abg(pH, pCO2):
                 guess += "background metabolic alcalosis, "
             else:
                 guess += "background metabolic acidosis, "
-        return "%(guess)sexpected pH %(ex_pH).2f" % {
-            'guess': guess, 'ex_pH': ex_pH}
+        return "%(guess)sexpected pH %(ex_pH).2f" % {"guess": guess, "ex_pH": ex_pH}
 
     if norm_pH[0] <= pH <= norm_pH[1]:  # pH is normal or compensated
         # Don't calculating expected CO2/pH values because both values are
@@ -521,17 +523,26 @@ def abg2(pH, pCO2, HCO3=None):
     print("y = ΔpH/ΔpCO2×100 = %.2f" % ((7.4 - pH) / (pCO2 - 40.0) * 100))
 
     # Expected pH (acute, chronic)
-    print("pH\t\tby Genderson\texpected %.2f .. %.2f acute-chronic" % (
-        7.4 + 0.008 * (40 - pCO2), 7.4 + 0.003 * (40 - pCO2)))
+    print(
+        "pH\t\tby Genderson\texpected %.2f .. %.2f acute-chronic"
+        % (7.4 + 0.008 * (40 - pCO2), 7.4 + 0.003 * (40 - pCO2))
+    )
 
     # Winter's formula (acidosis, alkalosis)
-    print("pCO2\tby Winter (x)\texpected %.1f±2 .. %.1f±1.5"
-          " acidisis-alkalosis" % (1.5 * HCO3 + 8, 0.7 * HCO3 + 20))
+    print(
+        "pCO2\tby Winter (x)\texpected %.1f±2 .. %.1f±1.5"
+        " acidisis-alkalosis" % (1.5 * HCO3 + 8, 0.7 * HCO3 + 20)
+    )
 
 
 def describe(pH, pCO2):
     HCO3act = calculate_hco3p(pH, pCO2)
-    info = "pH %.2f, pCO2 %.2f, HCO3act %.2f, BE %+.2f" % (pH, pCO2, HCO3act, calculate_be(pH, pCO2, HCO3act))
+    info = "pH %.2f, pCO2 %.2f, HCO3act %.2f, BE %+.2f" % (
+        pH,
+        pCO2,
+        HCO3act,
+        calculate_be(pH, pCO2, HCO3act),
+    )
     print(info)
     print(abg(pH, pCO2))
     abg2(pH, pCO2)
@@ -540,21 +551,21 @@ def describe(pH, pCO2):
 def test():
     variants = (
         # pH, pCO2, HCO3, comment
-        (7.46, 35., 27., "Metabolic Alkalosis"),
-        (7.30, 35., 20., "Metabolic Acidosis"),
-        (7.47, 32., 23., "Respiratory Alkalosis"),
-        (7.4,  40.01, 25., "Normal"),
-        (7.1, 28., 14., "Костюченко 1 вариант"),
-        (7.1, 68., None, "Костюченко 2 вариант"),
-        (7.3, 68., None, "Костюченко 3 вариант"),
-        (7.37, 58., None, "Untagged"),
+        (7.46, 35.0, 27.0, "Metabolic Alkalosis"),
+        (7.30, 35.0, 20.0, "Metabolic Acidosis"),
+        (7.47, 32.0, 23.0, "Respiratory Alkalosis"),
+        (7.4, 40.01, 25.0, "Normal"),
+        (7.1, 28.0, 14.0, "Костюченко 1 вариант"),
+        (7.1, 68.0, None, "Костюченко 2 вариант"),
+        (7.3, 68.0, None, "Костюченко 3 вариант"),
+        (7.37, 58.0, None, "Untagged"),
         (7.07, 53.2, None, "Resp. acidosis + metabolic"),
-        (7.39, 47., None, "Resp. acidosis, met. alcalosis, full comp. (COPD)")
+        (7.39, 47.0, None, "Resp. acidosis, met. alcalosis, full comp. (COPD)"),
     )
     for v in variants:
         describe(pH=v[0], pCO2=v[1])
         print("[%s]\n" % v[3])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

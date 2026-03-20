@@ -9,3 +9,9 @@ dependencies = [
     "pandas==3.0.1",
     "uncertainties==3.2.3",
 ]
+[dependency-groups]
+dev = [
+    "pre-commit>=4.5.1",
+    "ruff>=0.14.10",
+    # "ty>=0.0.23",
+]
